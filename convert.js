@@ -4,7 +4,7 @@ const dict = require("./dict");
 const crypto = require("crypto");
 const fs = require("fs");
 
-const defaultLogging = false;
+const defaultLogging = true;
 //QUESTIONS
 //TODO: separation in part 1 and part 2
 function createQuestionData() {
@@ -21,11 +21,12 @@ function createQuestionData() {
 }
 function createQuestion(node) {
   const { identity: id, properties } = node.n;
-  const { questionText } = properties;
+  const { questionText, part } = properties;
 
   const question = {
     id,
     questionText,
+    part,
   };
   return question;
 }
@@ -51,7 +52,7 @@ function getAnswers(questionId) {
 }
 
 //RECOMMENDATIONS
-//TODO: files
+
 function createRecommendationData() {
   // create a recommendation
   const recommendations = nodes
@@ -67,10 +68,26 @@ function createRecommendationData() {
 function createRecommendation(node) {
   const { identity: id, properties } = node.n;
   const { text, title } = properties;
+  const files = paths
+    .filter(
+      (path) =>
+        path.p.segments[0].relationship.type === "HAS_FILE" &&
+        path.p.start.identity === id
+    )
+    .map((path) => {
+      const fileTitle = path.p.end.properties.title;
+      const fileName = path.p.end.properties.name;
+      return {
+        fileTitle,
+        fileName,
+      };
+    });
+
   const recommendation = {
     id,
     text,
     title,
+    files,
   };
   return recommendation;
 }
@@ -251,12 +268,44 @@ const rules = createRules(questions);
 
 convertEverythingToString(questions, recommendation, rules);
 
+const questionsPartOne = questions
+  .filter((question) => question.part === 1)
+  .map((question) => {
+    return {
+      id: question.id,
+      question: question.question,
+      answers: question.answers,
+    };
+  });
+const questionsPartTwo = questions
+  .filter((question) => question.part === 2)
+  .map((question) => {
+    return {
+      id: question.id,
+      question: question.question,
+      answers: question.answers,
+    };
+  });
+const errorQuestionParts =
+  questions.length !== questionsPartOne.length + questionsPartTwo.length;
+if (errorQuestionParts)
+  console.log(
+    "ERROR: Question parts are not correct. Check if all questions have a part assigned."
+  );
 fs.writeFile(
   "./results/questions_part1.json",
-  JSON.stringify(questions),
+  JSON.stringify(questionsPartOne),
   (err) => {
     if (err) console.log(err);
     else console.log("Updated questions_part1.json");
+  }
+);
+fs.writeFile(
+  "./results/questions_part2.json",
+  JSON.stringify(questionsPartTwo),
+  (err) => {
+    if (err) console.log(err);
+    else console.log("Updated questions_part2.json");
   }
 );
 fs.writeFile(
