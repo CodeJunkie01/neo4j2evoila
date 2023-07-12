@@ -16,3 +16,9 @@
 - create the folders `~/data` and `~/results`
 - paste the json files into the folder `~/data/`: nodes as `nodes.json` and paths as `paths.json`
 - run command "node convert.js" (node.js must be installed)
+
+## To publish to prod:
+  - connect to remote host via ssh
+  - remove questionaire config in docker compose folder
+  - from your local folder execute `scp -rp results user@domain.com:/home/WeKI-GO-v1.9.2/WeKI-GO-docker-compose/questionaire-config` where user@domain.com has to be replaced with real connection credentials
+  - afterwards restart docker with `docker compose down` and `docker compose up -d`
