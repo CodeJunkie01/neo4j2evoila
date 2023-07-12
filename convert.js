@@ -239,7 +239,7 @@ function convertEverythingToString(questions, recommendation, rules) {
       answer.id = answer.id.toString();
     });
   });
-  recommendation.forEach((recommendation) => {
+  recommendation.recommendations.forEach((recommendation) => {
     recommendation.id = recommendation.id.toString();
   });
   rules.rules.forEach((rule) => {
@@ -256,38 +256,42 @@ function convertEverythingToString(questions, recommendation, rules) {
   });
   rules.conditionGroups.forEach((conditionGroup) => {
     conditionGroup.id = conditionGroup.id.toString();
-    conditionGroup.list.forEach((condition) => {
-      condition = condition.toString();
-    });
+    conditionGroup.list = conditionGroup.list.map((condition) =>
+      condition.toString()
+    );
   });
 }
 
 const questions = createQuestionData();
-const recommendation = createRecommendationData();
+const recommendationArray = createRecommendationData();
+const recommendation = { recommendations: recommendationArray };
 const rules = createRules(questions);
 
 convertEverythingToString(questions, recommendation, rules);
 
-const questionsPartOne = questions
+const questionsPartOneArray = questions
   .filter((question) => question.part === 1)
   .map((question) => {
     return {
       id: question.id,
-      question: question.question,
+      questionText: question.questionText,
       answers: question.answers,
     };
   });
-const questionsPartTwo = questions
+const questionsPartOne = { questions: questionsPartOneArray };
+const questionsPartTwoArray = questions
   .filter((question) => question.part === 2)
   .map((question) => {
     return {
       id: question.id,
-      question: question.question,
+      questionText: question.questionText,
       answers: question.answers,
     };
   });
+const questionsPartTwo = { questions: questionsPartTwoArray };
 const errorQuestionParts =
-  questions.length !== questionsPartOne.length + questionsPartTwo.length;
+  questions.length !==
+  questionsPartOne.questions.length + questionsPartTwo.questions.length;
 if (errorQuestionParts)
   console.log(
     "ERROR: Question parts are not correct. Check if all questions have a part assigned."
@@ -297,7 +301,7 @@ fs.writeFile(
   JSON.stringify(questionsPartOne),
   (err) => {
     if (err) console.log(err);
-    else console.log("Updated questions_part1.json");
+    else console.log("Updated questions_part1.json", questionsPartOne);
   }
 );
 fs.writeFile(
@@ -319,4 +323,9 @@ fs.writeFile(
 fs.writeFile("./results/rules.json", JSON.stringify(rules), (err) => {
   if (err) console.log(err);
   else console.log("Updated rules.json");
+});
+const glossary = { glossary: [] };
+fs.writeFile("./results/glossary.json", JSON.stringify(glossary), (err) => {
+  if (err) console.log(err);
+  else console.log("Updated glossary.json");
 });
